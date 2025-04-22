@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "build and run cpp",
+        "type": "shell",
+        "command": "cmd.exe",
+        "args": [
+          "/c", "g++ -g test.cpp -o test.exe && test.exe"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": ["$gcc"]
+      }
+    ]
+  }
+  
