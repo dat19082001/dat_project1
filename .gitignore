@@ -1,0 +1,6 @@
+*.exe
+build/
+*.txt
+*.log
+.vscode/
+*.md

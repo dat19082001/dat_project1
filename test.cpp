@@ -23,9 +23,29 @@ vector<Student> students;
 
 bool isUniqueID(const string &id)
 {
+    regex pattern(R"(^\d{3}$)");
+    if (!regex_match(id, pattern))
+    {
+        cout << "Sai dinh dang ID!\n";
+        return false;
+    }
     for (auto &s : students)
         if (s.id == id)
+        {
+            cout << "ID bi trung!\n";
             return false;
+        }
+    return true;
+}
+
+bool isValiName(const string &name)
+{
+    regex namePattern("^([A-Z][a-z]+)(\\s[A-Z][a-z]+)*$");
+    if (!regex_match(name, namePattern))
+    {
+        cout << "Ten sai dinh dang!\n";
+        return false;
+    }
     return true;
 }
 
@@ -103,13 +123,19 @@ bool validateDate(const string &dob)
 
 bool validateClass(const string &className)
 {
-    regex pattern("^(\\d{2}-\\d{1})$");
+    regex pattern("^(\\d{2}-\\d{1}+)$");
     return regex_match(className, pattern);
 }
 
 bool isValidGrade(float grade)
 {
     return grade >= 0 && grade <= 10;
+}
+
+bool isvali_f(const string &grade_f)
+{
+    regex floatRegex(R"(^\s*-?\d+(\.\d+)?\s*$)"); // regex cho số thực
+    return regex_match(grade_f, floatRegex);
 }
 
 void saveToFile()
@@ -133,16 +159,21 @@ void saveToFile()
 void addStudent()
 {
     Student s;
-    cout << "Nhap ID: ";
-    cin >> s.id;
-    if (!isUniqueID(s.id))
+    do
     {
-        cout << "ID bi trung.\n";
-        return;
-    }
-    cin.ignore();
-    cout << "Nhap ho ten: ";
-    getline(cin, s.name);
+        cout << "Nhap ID: ";
+        cin >> s.id;
+    } while (!isUniqueID(s.id));
+
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Loại bỏ tất cả ký tự đến '\n'
+    // cin.ignore();
+
+    do
+    {
+        cout << "Nhap ho ten: ";
+        getline(cin, s.name);
+    } while (!isValiName(s.name));
+
     do
     {
         cout << "Nhap ngay sinh (dd/mm/yyyy): ";
@@ -155,25 +186,34 @@ void addStudent()
         getline(cin, s.className);
     } while (!validateClass(s.className));
 
+    string math_f;
     do
     {
         cout << "Nhap diem Toan (0-10): ";
-        cin >> s.math;
-    } while (!isValidGrade(s.math));
+        cin >> math_f;
+        s.math = stof(math_f);
+    } while (!isValidGrade(s.math) || (!isvali_f(math_f)));
 
+    string physics_f;
     do
     {
         cout << "Nhap diem Ly (0-10): ";
-        cin >> s.physics;
-    } while (!isValidGrade(s.physics));
+        cin >> physics_f;
+        s.physics = stof(physics_f);
+    } while (!isValidGrade(s.physics) || (!isvali_f(physics_f)));
 
+    string chemistry_f;
     do
     {
         cout << "Nhap diem Hoa (0-10): ";
-        cin >> s.chemistry;
-    } while (!isValidGrade(s.chemistry));
+        cin >> chemistry_f;
+        s.chemistry = stof(chemistry_f);
+    } while (!isValidGrade(s.chemistry) || (!isvali_f(chemistry_f)));
 
     students.push_back(s);
+    sort(students.begin(), students.end(), [&](const Student &a, const Student &b)
+         { return a.id < b.id; });
+    cout << "Them sinh vien thanh cong!\n";
     saveToFile();
 }
 
@@ -246,8 +286,13 @@ void editByID()
 
             if (choice == 1)
             {
-                cout << "Nhap ten moi: ";
-                getline(cin, s.name);
+
+                do
+                {
+                    cout << "Nhap ho ten moi: ";
+                    getline(cin, s.name);
+                } while (!isValiName(s.name));
+
                 do
                 {
                     cout << "Nhap ngay sinh moi (dd/mm/yyyy): ";
@@ -260,25 +305,31 @@ void editByID()
                     getline(cin, s.className);
                 } while (!validateClass(s.className));
 
+                string math_f;
                 do
                 {
                     cout << "Nhap diem Toan moi (0-10): ";
-                    cin >> s.math;
-                } while (!isValidGrade(s.math));
+                    cin >> math_f;
+                    s.math = stof(math_f);
+                } while (!isValidGrade(s.math) || (!isvali_f(math_f)));
 
+                string physics_f;
                 do
                 {
                     cout << "Nhap diem Ly moi (0-10): ";
-                    cin >> s.physics;
-                } while (!isValidGrade(s.physics));
+                    cin >> physics_f;
+                    s.physics = stof(physics_f);
+                } while (!isValidGrade(s.physics) || (!isvali_f(physics_f)));
 
+                string chemistry_f;
                 do
                 {
                     cout << "Nhap diem Hoa moi (0-10): ";
-                    cin >> s.chemistry;
-                } while (!isValidGrade(s.chemistry));
+                    cin >> chemistry_f;
+                    s.chemistry = stof(chemistry_f);
+                } while (!isValidGrade(s.chemistry) || (!isvali_f(chemistry_f)));
 
-                cout<<"Da sua thanh cong!\n";
+                cout << "Da sua thanh cong!\n";
                 saveToFile();
             }
             else if (choice == 2)
@@ -288,12 +339,14 @@ void editByID()
                 cin >> editChoice;
                 cin.ignore();
 
-                
                 switch (editChoice)
                 {
                 case 1:
-                    cout << "Nhap ten moi: ";
-                    getline(cin, s.name);
+                    do
+                    {
+                        cout << "Nhap ho ten moi: ";
+                        getline(cin, s.name);
+                    } while (!isValiName(s.name));
                     break;
                 case 2:
                     do
@@ -310,35 +363,40 @@ void editByID()
                     } while (!validateClass(s.className));
                     break;
                 case 4:
-                    
+
                     int subjectChoice;
                     cout << "Ban muon sua diem mon nao? (1: math, 2: physics, 3: chemistry): ";
                     cin >> subjectChoice;
 
-                   
                     switch (subjectChoice)
                     {
                     case 1:
+                        {string math_f;
                         do
                         {
                             cout << "Nhap diem Toan moi (0-10): ";
-                            cin >> s.math;
-                        } while (!isValidGrade(s.math)); // Kiểm tra điểm Toán
-                        break;
+                            cin >> math_f;
+                            s.math = stof(math_f);
+                        } while (!isValidGrade(s.math) || (!isvali_f(math_f)));
+                        break;}
                     case 2:
+                        {string physics_f;
                         do
                         {
                             cout << "Nhap diem Ly moi (0-10): ";
-                            cin >> s.physics;
-                        } while (!isValidGrade(s.physics)); // Kiểm tra điểm Ly
-                        break;
+                            cin >> physics_f;
+                            s.physics = stof(physics_f);
+                        } while (!isValidGrade(s.physics) || (!isvali_f(physics_f)));
+                        break;}
                     case 3:
+                        {string chemistry_f;
                         do
                         {
                             cout << "Nhap diem Hoa moi (0-10): ";
-                            cin >> s.chemistry;
-                        } while (!isValidGrade(s.chemistry)); // Kiểm tra điểm Hóa  
-                        break;
+                            cin >> chemistry_f;
+                            s.chemistry = stof(chemistry_f);
+                        } while (!isValidGrade(s.chemistry) || (!isvali_f(chemistry_f)));
+                        break;}
                     default:
                         cout << "Lua chon mon hoc khong hop le.\n";
                         return;
@@ -348,11 +406,12 @@ void editByID()
                     cout << "Lua chon khong hop le.\n";
                     return;
                 }
-                cout<<"Da sua thanh cong!\n";
+                cout << "Da sua thanh cong!\n";
                 saveToFile();
             }
-            else cout<< "Lua chon khong hop le!\n"; 
-        
+            else
+                cout << "Lua chon khong hop le!\n";
+
             return;
         }
     }
@@ -377,65 +436,89 @@ void deleteByID()
         cout << "Khong ton tai ID: " << id << "\n";
 }
 
-float getSubjectScore(const Student& s, const string& subject){
-    if(subject == "math") return s.math;
-    if(subject == "physics") return s.physics;
+float getSubjectScore(const Student &s, const string &subject)
+{
+    if (subject == "math")
+        return s.math;
+    if (subject == "physics")
+        return s.physics;
     return s.chemistry;
 }
 
-void findExtremum(const string& subject,bool isMax ){
-    if(students.empty()) {
-        cout<<"Danh sach rong\n";
+void findExtremum(const string &subject, bool isMax)
+{
+    if (students.empty())
+    {
+        cout << "Danh sach rong\n";
         return;
     }
 
-    auto comp = [&] (Student&a, Student&b){
-        float va = getSubjectScore(a,subject);
-        float vb = getSubjectScore(b,subject);
-        return va<vb;
-    };
-
-    auto result = isMax ?  *max_element(students.begin(),students.end(), comp):
-                           *min_element(students.begin(),students.end(), comp);  
-    cout << (isMax ? "Max" : "Min")<<" diem mon "<<subject<<": "
-         <<result.name<< "(" << getSubjectScore(result, subject)<<")\n";
-}
-
-void statistics (const string& subject){
-    float sum=0, mean,stddve=0;
-    for(auto& s : students){
-        float val = getSubjectScore(s, subject);
-        sum+=val;
-    }
-    mean=sum/students.size();
-
-    for(auto& s : students){
-        float val = getSubjectScore(s, subject);
-        stddve+=pow(val-mean,2);
+    float extremeScore = getSubjectScore(students[0], subject);
+    for (const auto &s : students)
+    {
+        float score = getSubjectScore(s, subject);
+        if ((isMax && score > extremeScore) || (!isMax && score < extremeScore))
+        {
+            extremeScore = score;
+        }
     }
 
-    stddve=sqrt(stddve/students.size());
-    cout<<"Diem trung binh mon "<<subject<<": "<<mean<<", Do lech chuan: "<<stddve<<"\n";
+    vector<Student> matched;
+    for (const auto &s : students)
+    {
+        if (getSubjectScore(s, subject) == extremeScore)
+        {
+            matched.push_back(s);
+        }
+    }
+
+    sort(matched.begin(), matched.end(), [&](const Student &a, const Student &b)
+         { return a.id < b.id; });
+
+    cout << (isMax ? "Max" : "Min") << " diem mon " << subject << ": " << extremeScore << "\n";
+    for (const auto &s : matched)
+    {
+        cout << "- " << s.id << " | " << s.name << "\n";
+    }
 }
 
-void sortBySubject(const string& subject, bool ascending){
-    sort(students.begin(),students.end(),[&](Student& a, Student& b){
-        float va= getSubjectScore(a,subject);
-        float vb= getSubjectScore(b,subject);
-        return ascending ? va<vb : va>vb;
+void statistics(const string &subject)
+{
+    float sum = 0, mean, stddve = 0;
+    for (auto &s : students)
+    {
+        float val = getSubjectScore(s, subject);
+        sum += val;
+    }
+    mean = sum / students.size();
 
-        
-    });
-    cout<<"Danh sach sau khi sap xep la: \n";
+    for (auto &s : students)
+    {
+        float val = getSubjectScore(s, subject);
+        stddve += pow(val - mean, 2);
+    }
+
+    stddve = sqrt(stddve / students.size());
+    cout << "Diem trung binh mon " << subject << ": " << mean << ", Do lech chuan: " << stddve << "\n";
+}
+
+void sortBySubject(const string &subject, bool ascending)
+{
+    sort(students.begin(), students.end(), [&](Student &a, Student &b)
+         {
+             float va = getSubjectScore(a, subject);
+             float vb = getSubjectScore(b, subject);
+             if (va == vb)
+                 return a.id < b.id;
+             return ascending ? va < vb : va > vb; });
+    cout << "Danh sach sau khi sap xep la: \n";
     printAll();
-    saveToFile();
 }
-
 
 int main()
 {
     loadFromFile();
-    int choice;
+    int choice = 0;
 
     while (choice != 8)
     {
@@ -455,31 +538,41 @@ int main()
         case 4:
             deleteByID();
             break;
-        case 5:{
-            string mon; 
+        case 5:
+        {
+            string mon;
             bool max;
-            cout<< "Nhap mon (math/physics/chemistry): "; cin>>mon;
-            cout<< "Tim diem cao nhat (1) hay thap nhat (0): ";cin>>max;
+            cout << "Nhap mon (math/physics/chemistry): ";
+            cin >> mon;
+            cout << "Tim diem cao nhat (1) hay thap nhat (0): ";
+            cin >> max;
             findExtremum(mon, max);
             break;
         }
-        case 6:{
+        case 6:
+        {
             string mon;
-            cout<< "Nhap mon (math/physics/chemistry): "; cin>>mon;
+            cout << "Nhap mon (math/physics/chemistry): ";
+            cin >> mon;
             statistics(mon);
             break;
         }
-        case 7:{
-            string mon; bool asc;
-            cout<< "Nhap mon (math/physics/chemistry): "; cin >> mon;
-            cout<< "Tang dan (1) hay giam dan (0): ";cin >> asc; 
+        case 7:
+        {
+            string mon;
+            bool asc;
+            cout << "Nhap mon (math/physics/chemistry): ";
+            cin >> mon;
+            cout << "Tang dan (1) hay giam dan (0): ";
+            cin >> asc;
             sortBySubject(mon, asc);
-            break;          
+            break;
         }
-            
-        case 8:{
+
+        case 8:
+        {
             saveToFile();
-            cout<<"Da luu va thoat";
+            cout << "Da luu va thoat";
             break;
         }
         }
